@@ -8,7 +8,6 @@ class UserRepository:
     # En el constructor, especificamos la región para evitar el NoRegionError cuando se utiliza boto3 sin una configuración de región global.
     # Constructor para inicializar la conexión a DynamoDB y especificar la tabla a utilizar.
     def __init__(self, table_name: str, region_name: str = "us-east-1"):
-        # Al especificar la región aquí, evitamos el NoRegionError
         self.dynamodb = boto3.resource("dynamodb", region_name=region_name)
         self.table_name = table_name
         self.table = self.dynamodb.Table(table_name)

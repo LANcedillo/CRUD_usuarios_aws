@@ -4,7 +4,6 @@ from src.models.user import UserResponse
 from src.handlers.validator import handler
 
 def test_handler_valid_data():
-    # Simulamos lo que enviaría AWS
     event = {
         "username": "senior_dev",
         "email": "test@example.com",
@@ -16,14 +15,12 @@ def test_handler_valid_data():
     assert response["body"]["username"] == "senior_dev"
 
 def test_handler_invalid_age():
-    # Simulamos un usuario menor de edad (nuestra regla en Pydantic era >= 18)
     event = {
         "username": "junior",
         "email": "error@test.com",
         "edad": 15
     }
     
-    # Verificamos que la función lanza la excepción correctamente
     with pytest.raises(Exception) as excinfo:
         handler(event, None)
     

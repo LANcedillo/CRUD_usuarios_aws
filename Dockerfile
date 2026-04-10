@@ -1,19 +1,27 @@
-# 1. Usamos la imagen base de AWS para Python 3.11
+# 1. Imagen base oficial de AWS para Lambda
 FROM public.ecr.aws/lambda/python:3.11
 
-# 2. Instalamos Poetry
-RUN pip install poetry
+# 2. Variables de entorno para Poetry
+ENV POETRY_VERSION=2.0.1 \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_CREATE=false \
+    POETRY_CACHE_DIR='/tmp/poetry_cache'
 
-# 3. Copiamos los archivos de configuración de dependencias
-# LAMBDA_TASK_ROOT es /var/task por defecto en estas imágenes
-COPY pyproject.toml poetry.lock ${LAMBDA_TASK_ROOT}/
+# 3. Instalamos Poetry
+RUN pip install "poetry==$POETRY_VERSION"
 
-# 4. Instalamos dependencias (sin crear entorno virtual, ya estamos en un contenedor)
-RUN poetry config virtualenvs.create false \
-    && poetry install --only main --no-interaction --no-ansi
+# 4. Establecemos el directorio de trabajo (estándar de Lambda)
+WORKDIR ${LAMBDA_TASK_ROOT}
 
-# 5. Copiamos el código fuente
-COPY src/ ${LAMBDA_TASK_ROOT}/src/
+# 5. Copiamos los archivos de dependencias primero 
+COPY pyproject.toml ./
 
-# 6. El CMD se sobreescribirá en el template.yaml para cada función
+# 6. Instalamos dependencias
+# Usamos --no-root porque aún no copiamos el código
+RUN poetry install --only main --no-interaction --no-ansi --no-root -vvv
+
+# 7. Ahora copiamos el código fuente
+COPY src/ ./src/
+
+# 8. Comando por defecto (puedes cambiarlo al handler que quieras probar)
 CMD [ "src.handlers.validator.handler" ]

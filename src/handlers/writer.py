@@ -2,7 +2,7 @@ from src.services.repository import UserRepository
 from src.services.logger import log_structured
 import os
 
-# Instanciamos el repositorio FUERA del handler para reutilizar la conexión (Best Practice)
+# Instanciamos el repositorio FUERA del handler para reutilizar la conexión 
 repo = UserRepository(os.environ["USERS_TABLE"])
 
 def handler(event, context):
