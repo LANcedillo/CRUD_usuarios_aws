@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  # --- TABLA DYNAMODB ---
+  UsersTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey: {Name: user_id, Type: String}
+
+  # --- LAMBDA VALIDATOR ---
+  ValidatorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageConfig:
+        Command: ["src.handlers.validator.handler"]
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: .
+
+  # --- LAMBDA WRITER ---
+  WriterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Policies:
+        - DynamoDBCrudPolicy: {TableName: !Ref UsersTable}
+      ImageConfig:
+        Command: ["src.handlers.writer.handler"]
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: .
+
+  # --- ORQUESTADOR (STEP FUNCTIONS) ---
+  UserRegistrationStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: statemachine/registration.asl.json
+      DefinitionSubstitutions:
+        ValidatorLambdaArn: !GetAtt ValidatorFunction.Arn
+        WriterFunctionArn: !GetAtt WriterFunction.Arn
+      Policies:
+        - LambdaInvokePolicy: {FunctionName: !Ref ValidatorFunction}
+        - LambdaInvokePolicy: {FunctionName: !Ref WriterFunction}

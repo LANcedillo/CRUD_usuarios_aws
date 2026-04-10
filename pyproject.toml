@@ -1,0 +1,26 @@
+[project]
+name = "user-microservice-cloud"
+version = "0.1.0"
+description = "Microservicio Serverless con validación Pydantic y DynamoDB"
+authors = [{name = "LACN"}]
+requires-python = ">=3.11" # Bajamos a 3.11 para mayor compatibilidad con AWS Lambda
+
+dependencies = [
+    "pydantic[email]>=2.10.0",
+    "boto3>=1.34.0",           # ¡Faltaba esta para hablar con AWS!
+    "email-validator>=2.2.0"
+]
+
+[tool.poetry]
+# Esto es vital para que reconozca tu carpeta src
+packages = [{include = "src"}]
+
+[build-system]
+requires = ["poetry-core>=2.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "moto[dynamodb]>=5.0.0" # Especificamos el extra de dynamodb
+]
